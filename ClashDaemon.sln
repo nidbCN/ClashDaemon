@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32203.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClashDaemon", "ClashDaemon\ClashDaemon.csproj", "{8B962791-780A-421F-AC4E-4EB2ED1BAEE7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B962791-780A-421F-AC4E-4EB2ED1BAEE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B962791-780A-421F-AC4E-4EB2ED1BAEE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B962791-780A-421F-AC4E-4EB2ED1BAEE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B962791-780A-421F-AC4E-4EB2ED1BAEE7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {999E7807-9C86-49C8-AD77-84D21FA2D735}
+	EndGlobalSection
+EndGlobal
