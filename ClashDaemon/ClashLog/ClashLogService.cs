@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ClashDaemon.ClashLog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ClashDaemon
 {
-    public class ClashLogService
+    public class ClashLogService : IClashLogService
     {
         private readonly ILogger<ClashLogService> _logger;
 
@@ -16,52 +17,82 @@ namespace ClashDaemon
             _logger = logger;
         }
 
-        public void HandleLog(object sender, DataReceivedEventArgs e)
+        public void HandleLog(string? origin)
         {
-            var originLine = e.Data;
-            if (originLine is null) return;
+            if (origin is null) return;
 
-            var originSpan = originLine.AsSpan();
+            var originSpan = origin.AsSpan();
 
             var logDict = new Dictionary<string, string?>();
-            var keyPos = 0;
             var currentPos = 0;
-
-            do
+            while (currentPos < originSpan.Length)
             {
-                var (keyEndPos, key) = ReadKey(originLine, currentPos);
-                if (keyEndPos <= 0)
-                {
-                    _logger.LogError("Cannot parse clash log, origin message: {origin}", originLine);
-                    return;
-                }
-                var (valEndPos, val) = 
-
-            }while (currentPos < originLine.Length);
-
-            while (currentPos < originLine.Length)
-            {
-
-
-                if (originLine[currentPos] == '=')
-                {
-                    logDict.Add(originLine.Substring(keyPos, currentPos - 1), null);
-                }
-
+                (currentPos, var key, var value)
+                    = ReadKeyValuePair(currentPos, originSpan);
+                logDict.Add(key, value);
                 currentPos++;
+            }
+
+            switch (logDict["level"])
+            {
+                case "info":
+                    _logger.LogInformation(logDict["msg"]);
+                    break;
+                default:
+                    _logger.LogWarning("UnKnow level, origin message: {line}", origin);
+                    break;
             }
         }
 
-        private static (int endPos, KeyValuePair<string, string> keyValuePair) 
-            ReadKeyValuePair(ReadOnlySpan<char> originStr, int startPos)
+        private static (int endPos, string key, string value)
+            ReadKeyValuePair(int start, ReadOnlySpan<char> originStr)
         {
-            var keyEndIndex = originStr[startPos..].IndexOf('=');
-            var key = originStr[startPos..(keyEndIndex - 1)];
-            
-            var valueEndIndex = originStr[keyEndIndex..].IndexOf(' ');
-            var value = originStr[keyEndIndex..(valueEndIndex - 1)];
+            var keyEndIndex = originStr[start..].IndexOf('=') + start;
+            var key = originStr[start..keyEndIndex];
 
-            return (valueEndIndex, new(key.ToString(), value.ToString()));
+            var valueStartIndex = keyEndIndex + 1;
+            var (valueEndIndex, value) = ReadValue(valueStartIndex, originStr);
+
+            return (valueEndIndex, key.ToString(), value);
+        }
+
+        private static (int pos, string value)
+            ReadValue(int start, ReadOnlySpan<char> originStr)
+        {
+            var valStart = -1;
+            var valEnd = -1;
+            var spaceEnd = -1;
+            for (int i = start; i < originStr.Length; i++)
+            {
+                var ch = originStr[i];
+                if (ch == '\"')
+                {
+                    if (valStart == -1)
+                    {
+                        valStart = i;
+                    }
+                    else
+                    {
+                        valEnd = i;
+                        break;
+                    }
+                }
+                else if (ch == ' ' && valStart == -1)
+                {
+                    spaceEnd = i;
+                    break;
+                }
+            }
+
+            if (valEnd == -1)
+            {
+                if (spaceEnd == -1)
+                    return (start, "");
+
+                return (spaceEnd, originStr[start..spaceEnd].ToString());
+            }
+
+            return (valEnd + 1, originStr[valStart..(valEnd + 1)].ToString());
         }
     }
 }
