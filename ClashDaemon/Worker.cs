@@ -1,3 +1,4 @@
+using ClashDaemon.ClashLog;
 using System.Diagnostics;
 
 namespace ClashDaemon
@@ -5,10 +6,12 @@ namespace ClashDaemon
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
+        private readonly IClashLogService _clashLog;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IClashLogService clashLog)
         {
             _logger = logger;
+            _clashLog = clashLog;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,7 +28,16 @@ namespace ClashDaemon
             };
 
             process.Start();
-            process.OutputDataReceived += (s, e) => _logger.LogInformation(e.Data);
+            
+            process.OutputDataReceived += (_, e)
+                => _clashLog.HandleLog(e.Data);
+
+            process.ErrorDataReceived += (s, _e) => _logger.LogError(_e.Data);
+            process.Exited += (s, _e) => _logger.LogWarning("Exited!");
+            process.EnableRaisingEvents = true;
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
             await process.WaitForExitAsync();
 
             while (!stoppingToken.IsCancellationRequested)
