@@ -2,46 +2,52 @@ using ClashDaemon.ClashLog;
 using System.Diagnostics;
 using System.Text;
 
-namespace ClashDaemon
+namespace ClashDaemon;
+public class Worker : BackgroundService
 {
-    public class Worker : BackgroundService
+    private readonly ILogger<Worker> _logger;
+    private readonly IClashLogService _clashLog;
+
+    public Worker(ILogger<Worker> logger, IClashLogService clashLog)
     {
-        private readonly ILogger<Worker> _logger;
-        private readonly IClashLogService _clashLog;
+        _logger = logger;
+        _clashLog = clashLog;
+    }
 
-        public Worker(ILogger<Worker> logger, IClashLogService clashLog)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var process = new Process()
         {
-            _logger = logger;
-            _clashLog = clashLog;
-        }
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            var process = new Process()
+            StartInfo = new("clash.exe")
             {
-                StartInfo = new("clash.exe")
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    StandardOutputEncoding = Encoding.UTF8
-                },
-                EnableRaisingEvents = true
-            };
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                StandardOutputEncoding = Encoding.UTF8
+            },
+            EnableRaisingEvents = true
+        };
 
-            process.Start();
-            
-            process.OutputDataReceived += (_, e)
-                => _clashLog.HandleLog(e.Data);
-            process.ErrorDataReceived += (_, e)
-                =>  _logger.LogError(e.Data);
-            process.Exited += (s, _e) => _logger.LogWarning("Exited!");
+        process.Start();
 
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
+        process.OutputDataReceived += (_, e)
+            => _clashLog.HandleLog(e.Data);
+        process.ErrorDataReceived += (_, e)
+            => _logger.LogError(e.Data);
+        process.Exited += (s, _e) => _logger.LogWarning("Exited!");
 
-            await process.WaitForExitAsync(stoppingToken);
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        await process.WaitForExitAsync(stoppingToken);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            await Task.Delay(10000, stoppingToken);
         }
+
+        process.Kill();
     }
 }
