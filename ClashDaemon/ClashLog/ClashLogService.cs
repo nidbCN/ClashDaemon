@@ -24,7 +24,7 @@ public class ClashLogService : IClashLogService
                 = ReadKeyValuePair(currentPos, originSpan);
             if (currentPos == -1)
             {
-                _logger.LogError("Can not format: {origin}", origin);
+                _logger.LogError("can not format: {origin}", origin);
                 return;
             }
 
@@ -35,16 +35,16 @@ public class ClashLogService : IClashLogService
         switch (logDict["level"])
         {
             case "info":
-                _logger.LogInformation("Clash msg:{msg}", logDict["msg"]);
+                _logger.LogInformation("clash msg:{msg}", logDict["msg"]);
                 break;
             case "warning":
-                _logger.LogWarning("Clash msg:{msg}", logDict["msg"]);
+                _logger.LogWarning("clash msg:{msg}", logDict["msg"]);
                 break;
             case "error":
-                _logger.LogError("Clash msg:{msg}", logDict["msg"]);
+                _logger.LogError("clash msg:{msg}", logDict["msg"]);
                 break;
             default:
-                _logger.LogWarning("UnKnow level in: {origin}", origin);
+                _logger.LogWarning("unKnow level in: {origin}", origin);
                 break;
         }
     }
