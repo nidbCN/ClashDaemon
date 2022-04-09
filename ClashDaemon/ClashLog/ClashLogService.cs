@@ -1,4 +1,5 @@
 ﻿using ClashDaemon.ClashLog;
+using ClashDaemon.ClashLog.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +30,12 @@ namespace ClashDaemon
             {
                 (currentPos, var key, var value)
                     = ReadKeyValuePair(currentPos, originSpan);
+                if (currentPos == -1)
+                {
+                    _logger.LogError("Can not format: {origin}", origin);
+                    return;
+                }
+
                 logDict.Add(key, value);
                 currentPos++;
             }
@@ -36,10 +43,16 @@ namespace ClashDaemon
             switch (logDict["level"])
             {
                 case "info":
-                    _logger.LogInformation(logDict["msg"]);
+                    _logger.LogInformation("Clash msg:{msg}",logDict["msg"]);
+                    break;
+                case "warning":
+                    _logger.LogWarning("Clash msg:{msg}", logDict["msg"]);
+                    break;
+                case "error":
+                    _logger.LogError("Clash msg:{msg}", logDict["msg"]);
                     break;
                 default:
-                    _logger.LogWarning("UnKnow level, origin message: {line}", origin);
+                    _logger.LogWarning("UnKnow level in: {origin}", origin);
                     break;
             }
         }
@@ -47,7 +60,11 @@ namespace ClashDaemon
         private static (int endPos, string key, string value)
             ReadKeyValuePair(int start, ReadOnlySpan<char> originStr)
         {
-            var keyEndIndex = originStr[start..].IndexOf('=') + start;
+            var keyEndIndex = originStr[start..].IndexOf('=');
+            if (keyEndIndex == -1)
+                return (-1, string.Empty, string.Empty);
+            
+            keyEndIndex += start;
             var key = originStr[start..keyEndIndex];
 
             var valueStartIndex = keyEndIndex + 1;
