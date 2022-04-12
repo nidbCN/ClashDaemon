@@ -11,7 +11,7 @@ Save clash and ClashDaemon binary files to a sult path
 
 Launch PowerShell/cmd in AdminMode, and type:
 
-```ps
+```
 sc create Clash binPath=<ClashDaemon path> type=own start=auto displayname=Clash
 ```
 
