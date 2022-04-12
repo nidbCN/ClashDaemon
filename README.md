@@ -3,11 +3,15 @@ clash windows service running background
 
 ## Installation
 
-Download clash binary file
+### Build
 
-Build ClashDaemon
+1. Install .NET 6 SDK from [.NET](https://dotnet.microsoft.com/en-us/)
+2. Open a command line(Powershell, cmd or git-bash are acceptable)
+3. Execute `dotnet publish -c Release`, this build a production binary file use config "Relase"
 
-Save clash and ClashDaemon binary files to a sult path
+Download clash windows executable file
+
+Save clash and ClashDaemon binary files to somewhere
 
 Launch PowerShell/cmd in AdminMode, and type:
 
